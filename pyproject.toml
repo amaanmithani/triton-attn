@@ -1,0 +1,50 @@
+[project]
+name = "tattn"
+version = "0.1.0"
+description = "FlashAttention-2 style fused attention (forward + backward) in Triton, tuned and measured on a T4"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["torch>=2.4", "triton>=3.1; sys_platform == 'linux'"]
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "numpy>=1.26"]
+
+[tool.uv]
+# CPU wheels everywhere except where CUDA is already provided (Kaggle installs its own torch).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 110
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E741"]
+
+[tool.mypy]
+packages = ["tattn"]
+mypy_path = "src"
+ignore_missing_imports = true
+disallow_untyped_defs = true
+exclude = ["src/tattn/kernels.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["tattn"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true

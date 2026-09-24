@@ -1,0 +1,39 @@
+name: CI
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  test:
+    needs: quality
+    runs-on: ubuntu-latest
+    env:
+      # No GPU in CI: the Triton kernels run under Triton's CPU interpreter.
+      TRITON_INTERPRET: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run python -c "import triton, torch; print('triton', triton.__version__, 'torch', torch.__version__)"
+      - run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=85
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - run: uv run python bench/report.py --check
