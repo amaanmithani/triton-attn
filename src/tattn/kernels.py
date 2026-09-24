@@ -24,7 +24,7 @@ def _fwd_configs() -> list:
     # sm75: 64 KB shared memory per block, no cp.async, so few stages.
     return [
         triton.Config({"BLOCK_M": bm, "BLOCK_N": bn}, num_warps=w, num_stages=s)
-        for bm in (64, 128)
+        for bm in (32, 64, 128)
         for bn in (32, 64)
         for w in (4, 8)
         for s in (1, 2)
@@ -46,13 +46,17 @@ def _prune_smem(configs, named_args, **kwargs):
     d = named_args.get("HEAD_DIM", kwargs.get("HEAD_DIM", 64))
     q = named_args.get("Q")
     size = q.element_size() if hasattr(q, "element_size") else 2  # fp32 tiles take twice the space
-    keep = [c for c in configs if (c.kwargs["BLOCK_M"] + 2 * c.kwargs["BLOCK_N"]) * d * size <= 48 * 1024]
-    return keep or configs[:1]
+
+    def need(c) -> int:
+        return (c.kwargs["BLOCK_M"] + 2 * c.kwargs["BLOCK_N"]) * d * size
+
+    keep = [c for c in configs if need(c) <= 48 * 1024]
+    return keep or [min(configs, key=need)]  # nothing fits the budget: try the smallest tile
 
 
 @triton.autotune(
     configs=_fwd_configs(),
-    key=["N_CTX", "HEAD_DIM", "CAUSAL"],
+    key=["N_BUCKET", "HEAD_DIM", "CAUSAL"],
     prune_configs_by={"early_config_prune": _prune_smem},
 )
 @triton.jit
@@ -81,6 +85,7 @@ def _fwd_kernel(
     stride_od,
     H,
     N_CTX,
+    N_BUCKET,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
     DOT_PREC: tl.constexpr,
@@ -89,8 +94,8 @@ def _fwd_kernel(
 ):
     start_m = tl.program_id(0)
     off_hz = tl.program_id(1)
-    off_z = off_hz // H
-    off_h = off_hz % H
+    off_z = (off_hz // H).to(tl.int64)  # 64-bit offsets: large batches overflow int32
+    off_h = (off_hz % H).to(tl.int64)
     Q += off_z * stride_qz + off_h * stride_qh
     K += off_z * stride_kz + off_h * stride_kh
     V += off_z * stride_vz + off_h * stride_vh
@@ -135,7 +140,7 @@ def _fwd_kernel(
         m_i = m_new
 
     acc = acc / l_i[:, None]
-    tl.store(M + off_hz * N_CTX + offs_m, m_i + tl.math.log2(l_i), mask=row_ok)
+    tl.store(M + off_hz.to(tl.int64) * N_CTX + offs_m, m_i + tl.math.log2(l_i), mask=row_ok)
     tl.store(
         O + offs_m[:, None] * stride_om + offs_d[None, :] * stride_od,
         acc.to(O.dtype.element_ty),
@@ -145,7 +150,7 @@ def _fwd_kernel(
 
 @triton.autotune(
     configs=_bwd_configs(),
-    key=["N_CTX", "HEAD_DIM", "CAUSAL"],
+    key=["N_BUCKET", "HEAD_DIM", "CAUSAL"],
     prune_configs_by={"early_config_prune": _prune_smem},
 )
 @triton.jit
@@ -165,6 +170,7 @@ def _bwd_dkdv_kernel(
     stride_d,
     H,
     N_CTX,
+    N_BUCKET,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
     DOT_PREC: tl.constexpr,
@@ -175,8 +181,8 @@ def _bwd_dkdv_kernel(
     All of q, k, v, do, dk, dv share one contiguous layout (the wrapper guarantees it)."""
     start_n = tl.program_id(0)
     off_hz = tl.program_id(1)
-    off_z = off_hz // H
-    off_h = off_hz % H
+    off_z = (off_hz // H).to(tl.int64)
+    off_h = (off_hz % H).to(tl.int64)
     base = off_z * stride_z + off_h * stride_h
     Q += base
     K += base
@@ -184,8 +190,8 @@ def _bwd_dkdv_kernel(
     DO += base
     DK += base
     DV += base
-    M += off_hz * N_CTX
-    DELTA += off_hz * N_CTX
+    M += off_hz.to(tl.int64) * N_CTX
+    DELTA += off_hz.to(tl.int64) * N_CTX
 
     offs_n = start_n * BLOCK_N + tl.arange(0, BLOCK_N)
     offs_d = tl.arange(0, HEAD_DIM)
@@ -235,7 +241,7 @@ def _bwd_dkdv_kernel(
 
 @triton.autotune(
     configs=_bwd_configs(),
-    key=["N_CTX", "HEAD_DIM", "CAUSAL"],
+    key=["N_BUCKET", "HEAD_DIM", "CAUSAL"],
     prune_configs_by={"early_config_prune": _prune_smem},
 )
 @triton.jit
@@ -254,6 +260,7 @@ def _bwd_dq_kernel(
     stride_d,
     H,
     N_CTX,
+    N_BUCKET,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
     DOT_PREC: tl.constexpr,
@@ -263,16 +270,16 @@ def _bwd_dq_kernel(
     """One program per query block: dQ = dS K * sm_scale, looping over key blocks."""
     start_m = tl.program_id(0)
     off_hz = tl.program_id(1)
-    off_z = off_hz // H
-    off_h = off_hz % H
+    off_z = (off_hz // H).to(tl.int64)
+    off_h = (off_hz % H).to(tl.int64)
     base = off_z * stride_z + off_h * stride_h
     Q += base
     K += base
     V += base
     DO += base
     DQ += base
-    M += off_hz * N_CTX
-    DELTA += off_hz * N_CTX
+    M += off_hz.to(tl.int64) * N_CTX
+    DELTA += off_hz.to(tl.int64) * N_CTX
 
     offs_m = start_m * BLOCK_M + tl.arange(0, BLOCK_M)
     offs_d = tl.arange(0, HEAD_DIM)
@@ -312,3 +319,19 @@ def _bwd_dq_kernel(
         (dq * sm_scale).to(DQ.dtype.element_ty),
         mask=row_ok[:, None],
     )
+
+
+@triton.jit
+def _bwd_preprocess(O, DO, DELTA, stride_z, stride_h, stride_n, stride_d, H, N_CTX,
+                    HEAD_DIM: tl.constexpr, BLOCK_M: tl.constexpr):  # fmt: skip
+    """DELTA[z, h, i] = sum_d O[z, h, i, d] * dO[z, h, i, d] in fp32, without fp32 copies of O and dO."""
+    start_m = tl.program_id(0)
+    off_hz = tl.program_id(1)
+    base = (off_hz // H).to(tl.int64) * stride_z + (off_hz % H).to(tl.int64) * stride_h
+    offs_m = start_m * BLOCK_M + tl.arange(0, BLOCK_M)
+    offs_d = tl.arange(0, HEAD_DIM)
+    ok = offs_m < N_CTX
+    ptr = offs_m[:, None] * stride_n + offs_d[None, :] * stride_d
+    o = tl.load(O + base + ptr, mask=ok[:, None], other=0.0).to(tl.float32)
+    do = tl.load(DO + base + ptr, mask=ok[:, None], other=0.0).to(tl.float32)
+    tl.store(DELTA + off_hz.to(tl.int64) * N_CTX + offs_m, tl.sum(o * do, axis=1), mask=ok)

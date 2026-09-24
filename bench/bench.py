@@ -35,18 +35,21 @@ def flops(b: int, h: int, n: int, d: int, causal: bool, mode: str) -> float:
     return f * (3.5 if mode == "fwd+bwd" else 1.0)  # backward ~2.5x forward
 
 
-def measure(fn: Callable[[], Any]) -> dict[str, Any]:
+def measure(fn: Callable[[], Any], clear: Callable[[], None] = lambda: None) -> dict[str, Any]:
+    """Median time and peak memory above the baseline. `clear` drops state from the warm-up call
+    (e.g. .grad tensors) before the baseline is taken, so it isn't counted as freed memory."""
     torch.cuda.synchronize()
     torch.cuda.empty_cache()
     try:
         fn()  # warm-up (and autotune)
+        clear()
         torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats()
         base = torch.cuda.memory_allocated()
         fn()
         torch.cuda.synchronize()
         peak = torch.cuda.max_memory_allocated() - base
-        ms = triton.testing.do_bench(fn, warmup=25, rep=100)
+        ms = triton.testing.do_bench(fn, warmup=25, rep=100, return_mode="median")
         return {"ms": ms, "peak_extra_mib": peak / 2**20}
     except torch.OutOfMemoryError:
         torch.cuda.empty_cache()
@@ -97,6 +100,10 @@ def main() -> None:
             do = torch.randn_like(q)
             for name, f in impls().items():
                 for mode in ("fwd", "fwd+bwd"):
+
+                    def clear() -> None:
+                        return None
+
                     if mode == "fwd":
 
                         def fn(f: Callable[..., torch.Tensor] = f, q=q, k=k, v=v, causal=causal) -> None:  # type: ignore[no-untyped-def]
@@ -110,19 +117,33 @@ def main() -> None:
                             qg.grad = kg.grad = vg.grad = None
                             f(qg, kg, vg, causal).backward(do)
 
-                    r = measure(fn)
+                        def clear(qg=qg, kg=kg, vg=vg) -> None:  # type: ignore[no-untyped-def,misc]
+                            qg.grad = kg.grad = vg.grad = None
+
+                    r = measure(fn, clear)
                     if "ms" in r:
                         r["tflops"] = flops(b, a.heads, n, a.dim, causal, mode) / (r["ms"] * 1e-3) / 1e12
                     rows.append({"impl": name, "seq": n, "batch": b, "causal": causal, "mode": mode, **r})
                     print(json.dumps(rows[-1]), flush=True)
             # Accuracy against float32 at lengths where the float32 reference fits.
-            if n <= 4096:
-                ref = naive_attention(q.float(), k.float(), v.float(), causal=causal)
+            # Accuracy against float32 at every length: the materialised definition where it fits,
+            # else float32 SDPA mem-efficient (an independent implementation) on the first 2 heads.
+            if True:
+                if n <= 4096:
+                    ref = naive_attention(q.float(), k.float(), v.float(), causal=causal)
+                    sl = (slice(None), slice(None))
+                else:
+                    sl = (slice(0, 1), slice(0, 2))
+                    with sdpa_kernel(SDPBackend.EFFICIENT_ATTENTION):
+                        ref = F.scaled_dot_product_attention(
+                            q[sl].float(), k[sl].float(), v[sl].float(), is_causal=causal
+                        )
                 for name, f in impls().items():
                     try:
-                        out = f(q, k, v, causal).float()
+                        out = f(q[sl].contiguous(), k[sl].contiguous(), v[sl].contiguous(), causal).float()
                         errors.append(
                             {"impl": name, "seq": n, "causal": causal,
+                             "reference": "naive fp32" if n <= 4096 else "SDPA mem-efficient fp32, 2 heads",
                              "max_abs_err": (out - ref).abs().max().item(),
                              "mean_abs_err": (out - ref).abs().mean().item()}
                         )  # fmt: skip
@@ -132,7 +153,7 @@ def main() -> None:
                         )
                 del ref
             # Gradient accuracy for tattn vs float32 autograd at a moderate length.
-            if n == 1024:
+            if n in (1024, 4096):
                 qs, ks, vs = (t[:1].detach().clone() for t in (q, k, v))
                 dos = do[:1]
                 qg, kg, vg = (t.clone().requires_grad_() for t in (qs, ks, vs))
@@ -149,6 +170,9 @@ def main() -> None:
                          "max_abs_err": (got.float() - want).abs().max().item()}
                     )  # fmt: skip
             del q, k, v, do
+    a_ = torch.randn(4096, 4096, device=dev, dtype=torch.float16)
+    b_ = torch.randn(4096, 4096, device=dev, dtype=torch.float16)
+    mm_ms = triton.testing.do_bench(lambda: a_ @ b_, return_mode="median")
     tuned = {
         kname: {str(key): str(cfg) for key, cfg in kern.cache.items()}
         for kname, kern in (("fwd", _fwd_kernel), ("bwd_dkdv", _bwd_dkdv_kernel), ("bwd_dq", _bwd_dq_kernel))
@@ -168,9 +192,10 @@ def main() -> None:
             "heads": a.heads,
             "dim": a.dim,
             "dtype": "float16",
-            "timer": "triton.testing.do_bench median, warmup 25 ms, rep 100 ms",
+            "timer": "triton.testing.do_bench(return_mode='median'), warmup 25 ms, rep 100 ms",
             "flops": "4*B*H*N^2*D (halved when causal); fwd+bwd = 3.5x fwd",
         },  # fmt: skip
+        "cublas_fp16_matmul_4096_tflops": 2 * 4096**3 / (mm_ms * 1e-3) / 1e12,
         "rows": rows,
         "accuracy": errors,
         "autotune": tuned,

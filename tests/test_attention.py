@@ -102,3 +102,36 @@ def _has_triton() -> bool:
     except ImportError:
         return False
     return True
+
+
+def test_backward_with_noncontiguous_inputs_and_grad() -> None:
+    q, k, v, do = (rand((1, 21, 2, 16), torch.float32, s).transpose(1, 2) for s in (20, 21, 22, 23))
+    qs, ks, vs = (t.clone().requires_grad_() for t in (q, k, v))
+    attention(qs, ks, vs, causal=True).backward(do)
+    qr, kr, vr = (t.clone().requires_grad_() for t in (q, k, v))
+    naive_attention(qr, kr, vr, causal=True).backward(do)
+    for g, w in zip((qs.grad, ks.grad, vs.grad), (qr.grad, kr.grad, vr.grad), strict=True):
+        torch.testing.assert_close(g, w, **tol(torch.float32))
+
+
+def test_head_dim_128() -> None:
+    q, k, v = (rand((1, 1, 19, 128), torch.float16, s).requires_grad_() for s in (30, 31, 32))
+    out = attention(q, k, v, causal=True)
+    torch.testing.assert_close(
+        out.float(), naive_attention(q.float(), k.float(), v.float(), causal=True), **tol(torch.float16)
+    )
+    out.sum().backward()
+    assert q.grad is not None and torch.isfinite(q.grad.float()).all()
+
+
+def test_double_backward_is_refused_not_wrong() -> None:
+    q, k, v = (rand((1, 1, 8, 16), torch.float32, s).requires_grad_() for s in (40, 41, 42))
+    (dq,) = torch.autograd.grad(attention(q, k, v).sum(), q, create_graph=True)
+    with pytest.raises(RuntimeError):
+        torch.autograd.grad(dq.sum(), k)
+
+
+def test_rejects_mixed_devices() -> None:
+    x = torch.zeros(1, 1, 8, 16)
+    with pytest.raises(ValueError, match="one device"):
+        attention(x, x.to("meta"), x)

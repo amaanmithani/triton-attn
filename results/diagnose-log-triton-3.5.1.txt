@@ -1,20 +1,20 @@
 {
   "gpu": "Tesla T4",
-  "triton": "3.6.0",
+  "triton": "3.5.1",
   "torch": "2.10.0+cu128",
   "triton_mm_64x64x32": {
-    "tflops": 1.4026897900693087,
+    "tflops": 1.3879806729840696,
     "mma": 0,
     "ldmatrix": 0,
     "fma_f32": 1024
   },
   "triton_mm_128x128x32": {
-    "tflops": 0.08181932257625762,
+    "tflops": 0.08189337936761083,
     "mma": 0,
     "ldmatrix": 0,
     "fma_f32": 2048
   },
-  "torch_mm_tflops": 24.240699423684852,
+  "torch_mm_tflops": 24.600023005827488,
   "attention_fwd_128x64": {
     "mma": 0,
     "ldmatrix": 1,

@@ -1,0 +1,20 @@
+{
+  "gpu": "Tesla T4",
+  "triton": "3.3.1",
+  "torch": "2.10.0+cu128",
+  "triton_mm_64x64x32": {
+    "error": "RuntimeError: PassManager::run failed"
+  },
+  "triton_mm_128x128x32": {
+    "error": "RuntimeError: PassManager::run failed"
+  },
+  "torch_mm_tflops": 21.013382491960364,
+  "attention_fwd_128x64": {
+    "error": "RuntimeError: PassManager::run failed"
+  },
+  "attention_fwd_traceback_tail": [
+    "  File \"/usr/local/lib/python3.12/dist-packages/triton/backends/nvidia/compiler.py\", line 341, in make_llir",
+    "    pm.run(mod)",
+    "RuntimeError: PassManager::run failed"
+  ]
+}

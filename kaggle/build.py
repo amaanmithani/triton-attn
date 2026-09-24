@@ -30,11 +30,13 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pytest"], check=T
 subprocess.run(["nvidia-smi"], check=False)
 r = subprocess.CompletedProcess([], 0)
 MODE = os.environ.get("TATTN_KAGGLE_MODE", "@@MODE@@")
+os.makedirs("results", exist_ok=True)
 if MODE == "diagnose":
     # Which Triton releases still emit tensor-core code for sm75? Try each in turn.
-    for ver in ["3.6.0", "3.3.1", "3.2.0", "3.1.0", "3.0.0", "2.3.1"]:
+    for ver in ["3.6.0", "3.5.1", "3.5.0", "3.4.0", "3.3.1", "3.3.0", "3.2.0", "3.1.0", "3.0.0", "2.3.1"]:
         subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"triton=={{ver}}"], check=False)
-        subprocess.run([sys.executable, "bench/diagnose.py"], check=False, env=env)
+        with open(f"results/diagnose-log-triton-{{ver}}.txt", "w") as log:
+            subprocess.run([sys.executable, "bench/diagnose.py"], check=False, env=env, stdout=log, stderr=subprocess.STDOUT)
 else:
     # Triton >= 3.3 emits no tensor-core (mma) code for sm75 (see results/diagnose-*.json); 3.2.0 does.
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", "triton==@@TRITON@@"], check=True)
