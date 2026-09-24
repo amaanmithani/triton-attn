@@ -1,0 +1,1493 @@
+{
+  "env": {
+    "gpu": "Tesla T4",
+    "sm": "7.5",
+    "memory_gib": 14.6,
+    "torch": "2.10.0+cu128",
+    "triton": "3.6.0",
+    "cuda": "12.8",
+    "python": "3.12.13"
+  },
+  "config": {
+    "tokens": 16384,
+    "heads": 16,
+    "dim": 64,
+    "dtype": "float16",
+    "timer": "triton.testing.do_bench median, warmup 25 ms, rep 100 ms",
+    "flops": "4*B*H*N^2*D (halved when causal); fwd+bwd = 3.5x fwd"
+  },
+  "rows": [
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 25.994666417439777,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3217995498087298
+    },
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 141.5925750732422,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8493318539181386
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 3.2751040160655975,
+      "peak_extra_mib": 32.0,
+      "tflops": 10.491189958991459
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 15.83959674835205,
+      "peak_extra_mib": 130.0625,
+      "tflops": 7.592307190554692
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 32.86479949951172,
+      "peak_extra_mib": 1408.25048828125,
+      "tflops": 1.0454875395941634
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 80.22838592529297,
+      "peak_extra_mib": 2176.0,
+      "tflops": 1.4989592885488534
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 25.375019073486328,
+      "peak_extra_mib": 1152.0,
+      "tflops": 1.3540773415182004
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "batch": 32,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 75.98320007324219,
+      "peak_extra_mib": 2144.0,
+      "tflops": 1.5827062320628655
+    },
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 14.59450133641561,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.1771467066938068
+    },
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 82.07974243164062,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.7325746933730737
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 1.8943528056144714,
+      "peak_extra_mib": 32.0,
+      "tflops": 9.06899133734878
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 11.279703855514526,
+      "peak_extra_mib": 130.0625,
+      "tflops": 5.33077312261202
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 34.99897575378418,
+      "peak_extra_mib": 1409.25048828125,
+      "tflops": 0.49086777009874255
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 78.38179016113281,
+      "peak_extra_mib": 2176.0,
+      "tflops": 0.7671366272751505
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 32.302870432535805,
+      "peak_extra_mib": 1152.0,
+      "tflops": 0.5318372316132083
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "batch": 32,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 80.648193359375,
+      "peak_extra_mib": 2144.25,
+      "tflops": 0.745578290589323
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 51.125118255615234,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3441431351301045
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 273.24993896484375,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8802130733758189
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 5.93652406334877,
+      "peak_extra_mib": 32.0,
+      "tflops": 11.575709287571826
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 27.443445205688477,
+      "peak_extra_mib": 130.0625,
+      "tflops": 8.764139005628396
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 60.81795120239258,
+      "peak_extra_mib": 2560.25048828125,
+      "tflops": 1.1299209423762466
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 141.62518310546875,
+      "peak_extra_mib": 4224.0,
+      "tflops": 1.698272604504845
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 46.89206314086914,
+      "peak_extra_mib": 2176.0,
+      "tflops": 1.4654820481999011
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "batch": 16,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 130.48985290527344,
+      "peak_extra_mib": 4192.0,
+      "tflops": 1.8431944187307767
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 26.88811683654785,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.2778782008748304
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 151.7998046875,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.7922216009142387
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 3.364234685897827,
+      "peak_extra_mib": 32.0,
+      "tflops": 10.213240625580875
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 17.17415657043457,
+      "peak_extra_mib": 130.0625,
+      "tflops": 7.002328399347824
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 67.54303741455078,
+      "peak_extra_mib": 2564.25048828125,
+      "tflops": 0.5087088126806375
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 140.50486755371094,
+      "peak_extra_mib": 4224.0,
+      "tflops": 0.8559068904999212
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 62.29449462890625,
+      "peak_extra_mib": 2176.0,
+      "tflops": 0.5515694215465421
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "batch": 16,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 155.11541748046875,
+      "peak_extra_mib": 4193.0,
+      "tflops": 0.775287758247128
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 101.32966613769531,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3563545475935581
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 542.7034301757812,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.886370548636836
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 11.437910897391182,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.016088838683626
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 50.26377487182617,
+      "peak_extra_mib": 130.0625,
+      "tflops": 9.570238971876947
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 120.50259399414062,
+      "peak_extra_mib": 4864.25048828125,
+      "tflops": 1.1405476755021797
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 270.6120300292969,
+      "peak_extra_mib": 8320.0,
+      "tflops": 1.7775866693728368
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 94.3186264038086,
+      "peak_extra_mib": 4224.0,
+      "tflops": 1.4571772163387888
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "batch": 8,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 262.7419738769531,
+      "peak_extra_mib": 8288.0,
+      "tflops": 1.8308317093532915
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 51.945472717285156,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3229156101823905
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 289.3887023925781,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8311249422920405
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 6.210918039083481,
+      "peak_extra_mib": 32.0,
+      "tflops": 11.064302620573729
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 29.889834721883137,
+      "peak_extra_mib": 130.0625,
+      "tflops": 8.046821630629838
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 137.21200561523438,
+      "peak_extra_mib": 4880.25048828125,
+      "tflops": 0.500826997082901
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 283.5240783691406,
+      "peak_extra_mib": 8320.0,
+      "tflops": 0.8483165520173278
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 121.58975982666016,
+      "peak_extra_mib": 4224.0,
+      "tflops": 0.5651748702684117
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "batch": 8,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 318.0348815917969,
+      "peak_extra_mib": 8292.0,
+      "tflops": 0.7562634871124266
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 202.0489959716797,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3604517341057631
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 1076.315673828125,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8938573484507591
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 22.534143447875977,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.198285130287898
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 98.54975891113281,
+      "peak_extra_mib": 130.0625,
+      "tflops": 9.76230368226013
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 247.84194946289062,
+      "peak_extra_mib": 9472.25048828125,
+      "tflops": 1.1090854778204424
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 195.6495361328125,
+      "peak_extra_mib": 8320.0,
+      "tflops": 1.4049504659055518
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "batch": 4,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 102.33241271972656,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.34306374509536
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 558.02978515625,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.862026275205558
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 11.722441128322057,
+      "peak_extra_mib": 32.0,
+      "tflops": 11.724431111873105
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 54.43379211425781,
+      "peak_extra_mib": 130.0625,
+      "tflops": 8.837090315925325
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 283.6780090332031,
+      "peak_extra_mib": 9536.25048828125,
+      "tflops": 0.4844892769108283
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 260.2079162597656,
+      "peak_extra_mib": 8320.0,
+      "tflops": 0.528188978442895
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "batch": 4,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "tattn",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 403.6572265625,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3619372519839648
+    },
+    {
+      "impl": "tattn",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 2143.932373046875,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8974841617198391
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 44.95622444152832,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.228691815591235
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 198.5400390625,
+      "peak_extra_mib": 130.0625,
+      "tflops": 9.691472600155393
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 8192,
+      "batch": 2,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "tattn",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 203.2394256591797,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.352483190958007
+    },
+    {
+      "impl": "tattn",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 1098.0732421875,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8761461779975898
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 22.796202341715496,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.058056987895398
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 108.02105712890625,
+      "peak_extra_mib": 130.0625,
+      "tflops": 8.906343817353283
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 8192,
+      "batch": 2,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "tattn",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 825.7658081054688,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3315053941244896
+    },
+    {
+      "impl": "tattn",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 4252.28125,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.9049943950005658
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd",
+      "ms": 89.80659484863281,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.243105638613784
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "ms": 417.88385009765625,
+      "peak_extra_mib": 130.0625,
+      "tflops": 9.208995983732521
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 16384,
+      "batch": 1,
+      "causal": false,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "tattn",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 405.6971435546875,
+      "peak_extra_mib": 33.0,
+      "tflops": 1.3550891905993752
+    },
+    {
+      "impl": "tattn",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 2202.3017578125,
+      "peak_extra_mib": 129.0,
+      "tflops": 0.8736974130734986
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd",
+      "ms": 45.62241744995117,
+      "peak_extra_mib": 32.0,
+      "tflops": 12.050124579459093
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "ms": 218.83328247070312,
+      "peak_extra_mib": 130.0625,
+      "tflops": 8.792745449338128
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd",
+      "oom": true
+    },
+    {
+      "impl": "naive",
+      "seq": 16384,
+      "batch": 1,
+      "causal": true,
+      "mode": "fwd+bwd",
+      "oom": true
+    }
+  ],
+  "accuracy": [
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "causal": false,
+      "max_abs_err": 0.0002530217170715332,
+      "mean_abs_err": 1.5139594324864447e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "causal": false,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "causal": false,
+      "max_abs_err": 0.0002530217170715332,
+      "mean_abs_err": 1.5199380868580192e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "causal": false,
+      "max_abs_err": 0.0002428889274597168,
+      "mean_abs_err": 1.015832276607398e-05
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "causal": false,
+      "max_abs_err": 0.0002428889274597168,
+      "mean_abs_err": 1.0158254553971346e-05
+    },
+    {
+      "impl": "tattn",
+      "seq": 512,
+      "causal": true,
+      "max_abs_err": 0.0012068748474121094,
+      "mean_abs_err": 2.5834138796199113e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 512,
+      "causal": true,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 512,
+      "causal": true,
+      "max_abs_err": 0.0012068748474121094,
+      "mean_abs_err": 2.6029538275906816e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 512,
+      "causal": true,
+      "max_abs_err": 0.0009760856628417969,
+      "mean_abs_err": 1.8240032659377903e-05
+    },
+    {
+      "impl": "naive",
+      "seq": 512,
+      "causal": true,
+      "max_abs_err": 0.0009760856628417969,
+      "mean_abs_err": 1.8239947166875936e-05
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": false,
+      "max_abs_err": 0.00023651123046875,
+      "mean_abs_err": 1.0967518392135389e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "causal": false,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "causal": false,
+      "max_abs_err": 0.00023651123046875,
+      "mean_abs_err": 1.0991802810167428e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "causal": false,
+      "max_abs_err": 0.00023651123046875,
+      "mean_abs_err": 7.237830686790403e-06
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "causal": false,
+      "max_abs_err": 0.00023651123046875,
+      "mean_abs_err": 7.2377724791294895e-06
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": false,
+      "grad": "dq",
+      "max_abs_err": 0.0002276599407196045
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": false,
+      "grad": "dk",
+      "max_abs_err": 0.0002467036247253418
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": false,
+      "grad": "dv",
+      "max_abs_err": 0.00029027462005615234
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": true,
+      "max_abs_err": 0.0010066032409667969,
+      "mean_abs_err": 1.9267157767899334e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 1024,
+      "causal": true,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 1024,
+      "causal": true,
+      "max_abs_err": 0.0010066032409667969,
+      "mean_abs_err": 1.9387229258427396e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 1024,
+      "causal": true,
+      "max_abs_err": 0.0009753704071044922,
+      "mean_abs_err": 1.3341684280021582e-05
+    },
+    {
+      "impl": "naive",
+      "seq": 1024,
+      "causal": true,
+      "max_abs_err": 0.0009753704071044922,
+      "mean_abs_err": 1.334161152044544e-05
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": true,
+      "grad": "dq",
+      "max_abs_err": 0.0013492107391357422
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": true,
+      "grad": "dk",
+      "max_abs_err": 0.001148223876953125
+    },
+    {
+      "impl": "tattn",
+      "seq": 1024,
+      "causal": true,
+      "grad": "dv",
+      "max_abs_err": 0.0014858245849609375
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "causal": false,
+      "max_abs_err": 0.0001157522201538086,
+      "mean_abs_err": 7.867936801631004e-06
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "causal": false,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "causal": false,
+      "max_abs_err": 0.0001157522201538086,
+      "mean_abs_err": 7.877100870246068e-06
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "causal": false,
+      "max_abs_err": 0.0001157522201538086,
+      "mean_abs_err": 5.092102583148517e-06
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "causal": false,
+      "max_abs_err": 0.0001157522201538086,
+      "mean_abs_err": 5.09205301568727e-06
+    },
+    {
+      "impl": "tattn",
+      "seq": 2048,
+      "causal": true,
+      "max_abs_err": 0.0011935234069824219,
+      "mean_abs_err": 1.418124338670168e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 2048,
+      "causal": true,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 2048,
+      "causal": true,
+      "max_abs_err": 0.0011935234069824219,
+      "mean_abs_err": 1.4247155377233867e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 2048,
+      "causal": true,
+      "max_abs_err": 0.0009646415710449219,
+      "mean_abs_err": 9.625759048503824e-06
+    },
+    {
+      "impl": "naive",
+      "seq": 2048,
+      "causal": true,
+      "max_abs_err": 0.0009646415710449219,
+      "mean_abs_err": 9.625696293369401e-06
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "causal": false,
+      "max_abs_err": 7.309019565582275e-05,
+      "mean_abs_err": 5.64074707654072e-06
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "causal": false,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "causal": false,
+      "max_abs_err": 7.309019565582275e-05,
+      "mean_abs_err": 5.644791599479504e-06
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "causal": false,
+      "max_abs_err": 6.079673767089844e-05,
+      "mean_abs_err": 3.6093654216529103e-06
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "causal": false,
+      "max_abs_err": 6.079673767089844e-05,
+      "mean_abs_err": 3.609321765907225e-06
+    },
+    {
+      "impl": "tattn",
+      "seq": 4096,
+      "causal": true,
+      "max_abs_err": 0.0010721683502197266,
+      "mean_abs_err": 1.0388063856225926e-05
+    },
+    {
+      "impl": "sdpa_flash",
+      "seq": 4096,
+      "causal": true,
+      "error": "No available kernel. Aborting execution."
+    },
+    {
+      "impl": "sdpa_efficient",
+      "seq": 4096,
+      "causal": true,
+      "max_abs_err": 0.0010721683502197266,
+      "mean_abs_err": 1.0424246283946559e-05
+    },
+    {
+      "impl": "sdpa_math",
+      "seq": 4096,
+      "causal": true,
+      "max_abs_err": 0.0009725093841552734,
+      "mean_abs_err": 6.940251296327915e-06
+    },
+    {
+      "impl": "naive",
+      "seq": 4096,
+      "causal": true,
+      "max_abs_err": 0.0009725093841552734,
+      "mean_abs_err": 6.9401971813931596e-06
+    }
+  ],
+  "autotune": {
+    "fwd": {
+      "(512, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(512, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(1024, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(1024, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(2048, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(2048, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(4096, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(4096, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(8192, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None",
+      "(8192, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 2, maxnreg: None"
+    },
+    "bwd_dkdv": {
+      "(512, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(512, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(1024, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(1024, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(2048, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(2048, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(4096, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(4096, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(8192, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(8192, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 64, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None"
+    },
+    "bwd_dq": {
+      "(512, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(512, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 32, BLOCK_N: 32, num_warps: 4, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(1024, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(1024, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(2048, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(2048, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(4096, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(4096, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(8192, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(8192, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, False, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None",
+      "(16384, 64, True, 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float16', 'torch.float32', 'torch.float32')": "BLOCK_M: 64, BLOCK_N: 32, num_warps: 8, num_ctas: 1, num_stages: 1, maxnreg: None"
+    }
+  }
+}

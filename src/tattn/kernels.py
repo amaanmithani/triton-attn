@@ -1,6 +1,9 @@
 """Triton kernels: FlashAttention-2 style forward and backward.
 
 Layout: q, k, v, o, do are [Z, H, N, D] with arbitrary strides; D is a power of two.
+fp32 inputs use IEEE fp32 dots (DOT_PREC="ieee"): sm75 has no TF32, and Triton's default of TF32
+fails to compile there. fp16 inputs use tensor cores regardless of DOT_PREC.
+
 Softmax runs in base 2: scores are scaled by sm_scale * log2(e) and exponentiated with exp2,
 and the forward saves M = rowmax + log2(rowsum) so the backward can rebuild P = exp2(S - M)
 without storing it.
@@ -41,7 +44,9 @@ def _bwd_configs() -> list:
 def _prune_smem(configs, named_args, **kwargs):
     """Drop tiles that can't fit a T4's shared memory for this head size."""
     d = named_args.get("HEAD_DIM", kwargs.get("HEAD_DIM", 64))
-    keep = [c for c in configs if (c.kwargs["BLOCK_M"] + 2 * c.kwargs["BLOCK_N"]) * d * 2 <= 48 * 1024]
+    q = named_args.get("Q")
+    size = q.element_size() if hasattr(q, "element_size") else 2  # fp32 tiles take twice the space
+    keep = [c for c in configs if (c.kwargs["BLOCK_M"] + 2 * c.kwargs["BLOCK_N"]) * d * size <= 48 * 1024]
     return keep or configs[:1]
 
 
@@ -78,6 +83,7 @@ def _fwd_kernel(
     N_CTX,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
+    DOT_PREC: tl.constexpr,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
@@ -113,7 +119,7 @@ def _fwd_kernel(
         k = tl.load(
             K + cols[None, :] * stride_kn + offs_d[:, None] * stride_kd, mask=col_ok[None, :], other=0.0
         )
-        s = tl.dot(q, k) * qk_scale
+        s = tl.dot(q, k, input_precision=DOT_PREC) * qk_scale
         keep = col_ok[None, :]
         if CAUSAL:
             keep = keep & (offs_m[:, None] >= cols[None, :])
@@ -125,7 +131,7 @@ def _fwd_kernel(
         v = tl.load(
             V + cols[:, None] * stride_vn + offs_d[None, :] * stride_vd, mask=col_ok[:, None], other=0.0
         )
-        acc = acc * alpha[:, None] + tl.dot(p.to(v.dtype), v)
+        acc = acc * alpha[:, None] + tl.dot(p.to(v.dtype), v, input_precision=DOT_PREC)
         m_i = m_new
 
     acc = acc / l_i[:, None]
@@ -161,6 +167,7 @@ def _bwd_dkdv_kernel(
     N_CTX,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
+    DOT_PREC: tl.constexpr,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
@@ -204,15 +211,15 @@ def _bwd_dkdv_kernel(
         )
         m = tl.load(M + offs_m, mask=row_ok, other=0.0)
         delta = tl.load(DELTA + offs_m, mask=row_ok, other=0.0)
-        s_t = tl.dot(k, tl.trans(q)) * qk_scale  # [BLOCK_N, BLOCK_M]
+        s_t = tl.dot(k, tl.trans(q), input_precision=DOT_PREC) * qk_scale  # [BLOCK_N, BLOCK_M]
         keep = col_ok[:, None] & row_ok[None, :]
         if CAUSAL:
             keep = keep & (offs_m[None, :] >= offs_n[:, None])
         p_t = tl.where(keep, tl.math.exp2(s_t - m[None, :]), 0.0)
-        dv += tl.dot(p_t.to(do.dtype), do)
-        dp_t = tl.dot(v, tl.trans(do))
+        dv += tl.dot(p_t.to(do.dtype), do, input_precision=DOT_PREC)
+        dp_t = tl.dot(v, tl.trans(do), input_precision=DOT_PREC)
         ds_t = p_t * (dp_t - delta[None, :])
-        dk += tl.dot(ds_t.to(q.dtype), q)
+        dk += tl.dot(ds_t.to(q.dtype), q, input_precision=DOT_PREC)
 
     tl.store(
         DK + offs_n[:, None] * stride_n + offs_d[None, :] * stride_d,
@@ -249,6 +256,7 @@ def _bwd_dq_kernel(
     N_CTX,
     HEAD_DIM: tl.constexpr,
     CAUSAL: tl.constexpr,
+    DOT_PREC: tl.constexpr,
     BLOCK_M: tl.constexpr,
     BLOCK_N: tl.constexpr,
 ):
@@ -290,14 +298,14 @@ def _bwd_dq_kernel(
         v = tl.load(
             V + offs_n[:, None] * stride_n + offs_d[None, :] * stride_d, mask=col_ok[:, None], other=0.0
         )
-        s = tl.dot(q, tl.trans(k)) * qk_scale
+        s = tl.dot(q, tl.trans(k), input_precision=DOT_PREC) * qk_scale
         keep = row_ok[:, None] & col_ok[None, :]
         if CAUSAL:
             keep = keep & (offs_m[:, None] >= offs_n[None, :])
         p = tl.where(keep, tl.math.exp2(s - m[:, None]), 0.0)
-        dp = tl.dot(do, tl.trans(v))
+        dp = tl.dot(do, tl.trans(v), input_precision=DOT_PREC)
         ds = p * (dp - delta[:, None])
-        dq += tl.dot(ds.to(k.dtype), k)
+        dq += tl.dot(ds.to(k.dtype), k, input_precision=DOT_PREC)
 
     tl.store(
         DQ + offs_m[:, None] * stride_n + offs_d[None, :] * stride_d,

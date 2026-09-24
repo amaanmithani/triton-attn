@@ -1,0 +1,19 @@
+{
+  "gpu": "Tesla T4",
+  "triton": "2.3.1",
+  "triton_mm_64x64x32": {
+    "tflops": 8.030825539583166,
+    "mma": 32,
+    "fma_f32": 0,
+    "ldmatrix": 12
+  },
+  "triton_mm_128x128x32": {
+    "tflops": 12.63994905224019,
+    "mma": 64,
+    "fma_f32": 0,
+    "ldmatrix": 18
+  },
+  "torch_mm_tflops": 22.43405970035487,
+  "fwd_best_config": "BLOCK_M: 128, BLOCK_N: 64, num_warps: 4, num_ctas: 1, num_stages: 1, enable_warp_specialization: False, enable_persistent: False",
+  "fwd_ptx": []
+}

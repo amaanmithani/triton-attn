@@ -32,6 +32,10 @@ def _check(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> None:
         raise ValueError(f"q, k, v must share dtype float16 or float32, got {q.dtype}, {k.dtype}, {v.dtype}")
 
 
+def _prec(t: torch.Tensor) -> str:
+    return "ieee" if t.dtype == torch.float32 else "tf32"
+
+
 def _forward(
     q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, causal: bool, scale: float
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -49,7 +53,7 @@ def _forward(
     _fwd_kernel[grid](
         q, k, v, o, m, scale,
         *q.stride(), *k.stride(), *v.stride(), *o.stride(),
-        h, n, HEAD_DIM=d, CAUSAL=causal,
+        h, n, HEAD_DIM=d, CAUSAL=causal, DOT_PREC=_prec(q),
     )  # fmt: skip
     return o, m
 
@@ -74,8 +78,12 @@ def _backward(
     def grid_m(meta: dict[str, Any]) -> tuple[int, int]:
         return (triton.cdiv(n, meta["BLOCK_M"]), z * h)
 
-    _bwd_dkdv_kernel[grid_n](q, k, v, do, dk, dv, m, delta, scale, *stride, h, n, HEAD_DIM=d, CAUSAL=causal)
-    _bwd_dq_kernel[grid_m](q, k, v, do, dq, m, delta, scale, *stride, h, n, HEAD_DIM=d, CAUSAL=causal)
+    _bwd_dkdv_kernel[grid_n](
+        q, k, v, do, dk, dv, m, delta, scale, *stride, h, n, HEAD_DIM=d, CAUSAL=causal, DOT_PREC=_prec(q)
+    )
+    _bwd_dq_kernel[grid_m](
+        q, k, v, do, dq, m, delta, scale, *stride, h, n, HEAD_DIM=d, CAUSAL=causal, DOT_PREC=_prec(q)
+    )
     return dq, dk, dv
 
 
