@@ -1,5 +1,7 @@
 # triton-attn
 
+> **Credits.** Built by Amaan Mithani with Claude (Anthropic) as the AI coding assistant.
+
 FlashAttention-2 style attention in [Triton](https://github.com/triton-lang/triton), forward and backward, tuned
 for the NVIDIA T4 (the free Kaggle GPU) and measured against PyTorch's own attention backends.
 
