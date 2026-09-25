@@ -14,6 +14,12 @@ out = attention(q, k, v, causal=True)  # q, k, v: [batch, heads, seq, dim], fp16
 On a CUDA GPU the Triton kernels run; under `TRITON_INTERPRET=1` they run on the CPU (that's how CI tests them); on
 anything else the same algorithm runs as a tiled PyTorch reference.
 
+## See it running (on the Kaggle T4)
+
+![Committed Kaggle T4 evidence: environment, GPU test log and benchmark rows](docs/img/t4-evidence.svg)
+
+This is **from the committed Kaggle T4 run**, not a local run: Triton kernels need an NVIDIA GPU, and this was rendered on a Mac. The image shows the GPU environment recorded in `results/t4.json`, the pytest log the Kaggle job saved after running the full test suite on the T4 (`results/t4-gpu-tests.txt`, 79 passed), and every tattn vs SDPA mem-efficient row of `results/t4.json`, extracted with the `jq` command shown.
+
 ## What's inside
 
 - **Forward** (`src/tattn/kernels.py`): one program per (query block, batch×head). It streams key/value blocks
